@@ -8,6 +8,13 @@ import {
   Hand,
   GameResult,
 } from "./types";
+import {
+  ACE_HIGH_VALUE,
+  ACE_LOW_VALUE,
+  FACE_CARD_VALUE,
+  BLACKJACK_MAX,
+  FACE_CARDS,
+} from "./constants";
 
 //UI Elements
 const CardBackImage = () => (
@@ -58,8 +65,31 @@ const setupGame = (): GameState => {
 };
 
 //Scoring
+const getCardValue = (card: Card): number => {
+  if (card.rank === CardRank.Ace) return ACE_HIGH_VALUE;
+  if (FACE_CARDS.has(card.rank)) return FACE_CARD_VALUE;
+  return parseInt(card.rank);
+};
+
 const calculateHandScore = (hand: Hand): number => {
-  return 0;
+  let acesCount = 0;
+
+  let score = hand.reduce((acc, card) => {
+    const value = getCardValue(card);
+
+    if (card.rank === CardRank.Ace) {
+      acesCount++;
+    };
+
+    return acc + value;
+  }, 0);
+
+  while (score > BLACKJACK_MAX && acesCount > 0) {
+    score -= ACE_HIGH_VALUE - ACE_LOW_VALUE;
+    acesCount--;
+  }
+
+  return score;
 };
 
 const determineGameResult = (state: GameState): GameResult => {
