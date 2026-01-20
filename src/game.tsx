@@ -7,7 +7,17 @@ import {
   GameState,
   Hand,
   GameResult,
+  HandAndDeck,
+  Turn,
 } from "./types";
+import {
+  ACE_HIGH_VALUE,
+  ACE_LOW_VALUE,
+  FACE_CARD_VALUE,
+  BLACKJACK_MAX,
+  FACE_CARDS,
+  DEALER_MIN_STAND,
+} from "./constants";
 
 //UI Elements
 const CardBackImage = () => (
@@ -53,24 +63,83 @@ const setupGame = (): GameState => {
     playerHand: cardDeck.slice(cardDeck.length - 2, cardDeck.length),
     dealerHand: cardDeck.slice(cardDeck.length - 4, cardDeck.length - 2),
     cardDeck: cardDeck.slice(0, cardDeck.length - 4), // remaining cards after player and dealer have been give theirs
-    turn: "player_turn",
+    turn: Turn.PlayerTurn,
   };
 };
 
 //Scoring
+const getCardValue = (card: Card): number => {
+  if (card.rank === CardRank.Ace) return ACE_HIGH_VALUE;
+  if (FACE_CARDS.has(card.rank)) return FACE_CARD_VALUE;
+  return parseInt(card.rank);
+};
+
 const calculateHandScore = (hand: Hand): number => {
-  return 0;
+  let acesCount = 0;
+
+  let score = hand.reduce((acc, card) => {
+    const value = getCardValue(card);
+
+    if (card.rank === CardRank.Ace) {
+      acesCount++;
+    };
+
+    return acc + value;
+  }, 0);
+
+  while (score > BLACKJACK_MAX && acesCount > 0) {
+    score -= ACE_HIGH_VALUE - ACE_LOW_VALUE;
+    acesCount--;
+  }
+
+  return score;
 };
 
 const determineGameResult = (state: GameState): GameResult => {
-  return "no_result";
+  const playerScore = calculateHandScore(state.playerHand);
+  const dealerScore = calculateHandScore(state.dealerHand);
+
+  const isPlayerBust = playerScore > BLACKJACK_MAX;
+  const isDealerBust = dealerScore > BLACKJACK_MAX;
+  const isPlayerBlackjack = playerScore === 21 && state.playerHand.length === 2;
+  const isDealerBlackjack = dealerScore === 21 && state.dealerHand.length === 2;
+
+  if (isPlayerBust && isDealerBust) return GameResult.NoResult;
+  if (isPlayerBust) return GameResult.DealerWin;
+  if (isDealerBust) return GameResult.PlayerWin;
+
+  if (isPlayerBlackjack && isDealerBlackjack) return GameResult.Draw;
+  if (isPlayerBlackjack) return GameResult.PlayerWin;
+  if (isDealerBlackjack) return GameResult.DealerWin;
+
+  if (playerScore > dealerScore) return GameResult.PlayerWin;
+  if (dealerScore > playerScore) return GameResult.DealerWin;
+
+  return GameResult.Draw;
+};
+
+const dealerPlaysHand = ({ hand, deck }: HandAndDeck): HandAndDeck => {
+  if (calculateHandScore(hand) >= DEALER_MIN_STAND) {
+    return { hand, deck };
+  }
+
+  if (deck.length === 0) {
+    throw Error("No cards left in deck");
+  }
+
+  const { card, remaining } = takeCard(deck);
+  return dealerPlaysHand({ deck: remaining, hand: [...hand, card] });
 };
 
 //Player Actions
 const playerStands = (state: GameState): GameState => {
+  const { hand, deck } = dealerPlaysHand({ hand: state.dealerHand, deck: state.cardDeck });
+
   return {
     ...state,
-    turn: "dealer_turn",
+    dealerHand: hand,
+    cardDeck: deck,
+    turn: Turn.DealerTurn,
   };
 };
 
@@ -87,18 +156,20 @@ const playerHits = (state: GameState): GameState => {
 const Game = (): JSX.Element => {
   const [state, setState] = useState(setupGame());
 
+  const gameResult = determineGameResult(state)
+
   return (
     <>
       <div>
         <p>There are {state.cardDeck.length} cards left in deck</p>
         <button
-          disabled={state.turn === "dealer_turn"}
+          disabled={state.turn === Turn.DealerTurn}
           onClick={(): void => setState(playerHits)}
         >
           Hit
         </button>
         <button
-          disabled={state.turn === "dealer_turn"}
+          disabled={state.turn === Turn.DealerTurn}
           onClick={(): void => setState(playerStands)}
         >
           Stand
@@ -111,7 +182,7 @@ const Game = (): JSX.Element => {
         <p>Player Score {calculateHandScore(state.playerHand)}</p>
       </div>
       <p>Dealer Cards</p>
-      {state.turn === "player_turn" && state.dealerHand.length > 0 ? (
+      {state.turn === Turn.PlayerTurn && state.dealerHand.length > 0 ? (
         <div>
           <CardBackImage />
           <CardImage {...state.dealerHand[1]} />
@@ -122,9 +193,9 @@ const Game = (): JSX.Element => {
           <p>Dealer Score {calculateHandScore(state.dealerHand)}</p>
         </div>
       )}
-      {state.turn === "dealer_turn" &&
-      determineGameResult(state) != "no_result" ? (
-        <p>{determineGameResult(state)}</p>
+      {state.turn === Turn.DealerTurn &&
+      gameResult !== GameResult.NoResult ? (
+        <p>{gameResult}</p>
       ) : (
         <p>{state.turn}</p>
       )}
