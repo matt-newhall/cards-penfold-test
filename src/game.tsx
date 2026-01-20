@@ -7,6 +7,7 @@ import {
   GameState,
   Hand,
   GameResult,
+  HandAndDeck,
 } from "./types";
 import {
   ACE_HIGH_VALUE,
@@ -14,6 +15,7 @@ import {
   FACE_CARD_VALUE,
   BLACKJACK_MAX,
   FACE_CARDS,
+  DEALER_MIN_STAND,
 } from "./constants";
 
 //UI Elements
@@ -96,10 +98,27 @@ const determineGameResult = (state: GameState): GameResult => {
   return "no_result";
 };
 
+const dealerPlaysHand = ({ hand, deck }: HandAndDeck): HandAndDeck => {
+  if (calculateHandScore(hand) >= DEALER_MIN_STAND) {
+    return { hand, deck };
+  }
+
+  if (deck.length === 0) {
+    throw Error("No cards left in deck");
+  }
+
+  const { card, remaining } = takeCard(deck);
+  return dealerPlaysHand({ deck: remaining, hand: [...hand, card] });
+}
+
 //Player Actions
 const playerStands = (state: GameState): GameState => {
+  const { hand, deck } = dealerPlaysHand({ hand: state.dealerHand, deck: state.cardDeck });
+
   return {
     ...state,
+    dealerHand: hand,
+    cardDeck: deck,
     turn: "dealer_turn",
   };
 };

@@ -32,6 +32,10 @@ export type Card = {
 
 export type CardDeck = Array<Card>;
 export type Hand = Array<Card>;
+export type HandAndDeck = {
+  hand: Hand;
+  deck: CardDeck;
+};
 export type GameState = {
   cardDeck: CardDeck;
   playerHand: Hand;
