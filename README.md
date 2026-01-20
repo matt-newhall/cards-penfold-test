@@ -1,14 +1,24 @@
-Installation
+# Matt Newhall: Penfold Cards Tech Test
+
+I have implemented all remaining game logic, thus ensuring that all tests run accordingly.
+
+I have also tried to do this task in a way I would do any day-to-day engineering - making PRs for small bits of work! Thankfully the task itself was a single, completable chunk of work so the PR can be found [here](https://github.com/matt-newhall/cards-penfold-test/pull/1). This has been squashed & merged into the `main` branch as I would typically do, but I have added some comments, screenshots, etc on the PR to provide some clarity on some coding decisions I thought were relevant.
+
+At the end, I thought I'd do a little extension as well! Made a small PR just to allow the dealer to hit again if they are currently losing but over the threshold of 17 - can be found [here](https://github.com/matt-newhall/cards-penfold-test/pull/2)!
+
+## Installation
+
 1 - Install required packages: `yarn` (or npm)
 
 2 - Run the local dev server with `yarn start`
 
 3 - Run the test suit with `yarn test`
 
-Aim
+## Aim
+
 * Fix the tests to make the game work!
 
-Rules
+## Rules
 
 * This is a simplified version of BlackJack so there are only two players the 'player' and the 'dealer'. There is also no gambling!
 * The game is played with a deck of 52 cards
@@ -19,13 +29,13 @@ Rules
 * After the player has had their turn, the dealer will turn over their first card.
 * If the dealer has a score of 16 or less then the dealer must take another card
 
-Result
+## Result
 
 * If the player or the dealer goes over 21 then they will 'bust' and lose.
 * If no player has bust then the player with the higher point total will win.
 * If both players have the same score the result is a draw unless one player has blackjack in which case they win.
 
-Scoring
+## Scoring
 
 * Aces may be counted as 1 or 11 points. The higher value applies if it does not cause the player to go over 21
 * Cards 2 to 9 are same as face value (e.g 5 = 5 points)
