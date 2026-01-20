@@ -118,9 +118,21 @@ const determineGameResult = (state: GameState): GameResult => {
   return GameResult.Draw;
 };
 
-const dealerPlaysHand = ({ hand, deck }: HandAndDeck): HandAndDeck => {
-  if (calculateHandScore(hand) >= DEALER_MIN_STAND) {
-    return { hand, deck };
+type DealerPlaysHandProps = {
+  dealerHand: Hand
+  deck: CardDeck
+  playerHand: Hand
+}
+
+const dealerPlaysHand = ({ dealerHand, deck, playerHand }: DealerPlaysHandProps): HandAndDeck => {
+  const playerScore = calculateHandScore(playerHand);
+  const dealerScore = calculateHandScore(dealerHand);
+
+  const playerHasValidScore = playerScore <= BLACKJACK_MAX;
+  const dealerIsWinningOrTying = dealerScore >= playerScore;
+
+  if (dealerScore >= DEALER_MIN_STAND && playerHasValidScore && dealerIsWinningOrTying) {
+    return { hand: dealerHand, deck };
   }
 
   if (deck.length === 0) {
@@ -128,12 +140,12 @@ const dealerPlaysHand = ({ hand, deck }: HandAndDeck): HandAndDeck => {
   }
 
   const { card, remaining } = takeCard(deck);
-  return dealerPlaysHand({ deck: remaining, hand: [...hand, card] });
+  return dealerPlaysHand({ deck: remaining, dealerHand: [...dealerHand, card], playerHand });
 };
 
 //Player Actions
 const playerStands = (state: GameState): GameState => {
-  const { hand, deck } = dealerPlaysHand({ hand: state.dealerHand, deck: state.cardDeck });
+  const { hand, deck } = dealerPlaysHand({ dealerHand: state.dealerHand, deck: state.cardDeck, playerHand: state.playerHand });
 
   return {
     ...state,
