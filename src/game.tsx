@@ -129,7 +129,7 @@ const dealerPlaysHand = ({ hand, deck }: HandAndDeck): HandAndDeck => {
 
   const { card, remaining } = takeCard(deck);
   return dealerPlaysHand({ deck: remaining, hand: [...hand, card] });
-}
+};
 
 //Player Actions
 const playerStands = (state: GameState): GameState => {
@@ -194,7 +194,7 @@ const Game = (): JSX.Element => {
         </div>
       )}
       {state.turn === Turn.DealerTurn &&
-      gameResult !== "no_result" ? (
+      gameResult !== GameResult.NoResult ? (
         <p>{gameResult}</p>
       ) : (
         <p>{state.turn}</p>
