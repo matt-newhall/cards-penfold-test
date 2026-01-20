@@ -8,6 +8,7 @@ import {
   Hand,
   GameResult,
   HandAndDeck,
+  Turn,
 } from "./types";
 import {
   ACE_HIGH_VALUE,
@@ -62,7 +63,7 @@ const setupGame = (): GameState => {
     playerHand: cardDeck.slice(cardDeck.length - 2, cardDeck.length),
     dealerHand: cardDeck.slice(cardDeck.length - 4, cardDeck.length - 2),
     cardDeck: cardDeck.slice(0, cardDeck.length - 4), // remaining cards after player and dealer have been give theirs
-    turn: "player_turn",
+    turn: Turn.PlayerTurn,
   };
 };
 
@@ -119,7 +120,7 @@ const playerStands = (state: GameState): GameState => {
     ...state,
     dealerHand: hand,
     cardDeck: deck,
-    turn: "dealer_turn",
+    turn: Turn.DealerTurn,
   };
 };
 
@@ -136,18 +137,20 @@ const playerHits = (state: GameState): GameState => {
 const Game = (): JSX.Element => {
   const [state, setState] = useState(setupGame());
 
+  const gameResult = determineGameResult(state)
+
   return (
     <>
       <div>
         <p>There are {state.cardDeck.length} cards left in deck</p>
         <button
-          disabled={state.turn === "dealer_turn"}
+          disabled={state.turn === Turn.DealerTurn}
           onClick={(): void => setState(playerHits)}
         >
           Hit
         </button>
         <button
-          disabled={state.turn === "dealer_turn"}
+          disabled={state.turn === Turn.DealerTurn}
           onClick={(): void => setState(playerStands)}
         >
           Stand
@@ -160,7 +163,7 @@ const Game = (): JSX.Element => {
         <p>Player Score {calculateHandScore(state.playerHand)}</p>
       </div>
       <p>Dealer Cards</p>
-      {state.turn === "player_turn" && state.dealerHand.length > 0 ? (
+      {state.turn === Turn.PlayerTurn && state.dealerHand.length > 0 ? (
         <div>
           <CardBackImage />
           <CardImage {...state.dealerHand[1]} />
@@ -171,9 +174,9 @@ const Game = (): JSX.Element => {
           <p>Dealer Score {calculateHandScore(state.dealerHand)}</p>
         </div>
       )}
-      {state.turn === "dealer_turn" &&
-      determineGameResult(state) != "no_result" ? (
-        <p>{determineGameResult(state)}</p>
+      {state.turn === Turn.DealerTurn &&
+      gameResult !== "no_result" ? (
+        <p>{gameResult}</p>
       ) : (
         <p>{state.turn}</p>
       )}
