@@ -105,6 +105,10 @@ describe("The player actions", () => {
       { suit: CardSuit.Clubs, rank: CardRank.Ten },
       { suit: CardSuit.Clubs, rank: CardRank.Seven },
     ];
+    initialGameState.playerHand = [
+      { suit: CardSuit.Clubs, rank: CardRank.Ten },
+      { suit: CardSuit.Clubs, rank: CardRank.Six },
+    ];
 
     const newGameState = playerStands(initialGameState);
 
