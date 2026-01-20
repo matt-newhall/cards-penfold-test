@@ -96,7 +96,26 @@ const calculateHandScore = (hand: Hand): number => {
 };
 
 const determineGameResult = (state: GameState): GameResult => {
-  return "no_result";
+  const playerScore = calculateHandScore(state.playerHand);
+  const dealerScore = calculateHandScore(state.dealerHand);
+
+  const isPlayerBust = playerScore > BLACKJACK_MAX;
+  const isDealerBust = dealerScore > BLACKJACK_MAX;
+  const isPlayerBlackjack = playerScore === 21 && state.playerHand.length === 2;
+  const isDealerBlackjack = dealerScore === 21 && state.dealerHand.length === 2;
+
+  if (isPlayerBust && isDealerBust) return GameResult.NoResult;
+  if (isPlayerBust) return GameResult.DealerWin;
+  if (isDealerBust) return GameResult.PlayerWin;
+
+  if (isPlayerBlackjack && isDealerBlackjack) return GameResult.Draw;
+  if (isPlayerBlackjack) return GameResult.PlayerWin;
+  if (isDealerBlackjack) return GameResult.DealerWin;
+
+  if (playerScore > dealerScore) return GameResult.PlayerWin;
+  if (dealerScore > playerScore) return GameResult.DealerWin;
+
+  return GameResult.Draw;
 };
 
 const dealerPlaysHand = ({ hand, deck }: HandAndDeck): HandAndDeck => {
