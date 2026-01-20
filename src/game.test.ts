@@ -112,6 +112,24 @@ describe("The player actions", () => {
       initialGameState.dealerHand.length
     );
   });
+
+  test("When the player 'Stands' and the dealers score is 17 or more but the dealer is losing, they take another card", () => {
+    const initialGameState = setupGame();
+    initialGameState.dealerHand = [
+      { suit: CardSuit.Clubs, rank: CardRank.Ten },
+      { suit: CardSuit.Clubs, rank: CardRank.Seven },
+    ];
+    initialGameState.playerHand = [
+      { suit: CardSuit.Clubs, rank: CardRank.Ten },
+      { suit: CardSuit.Clubs, rank: CardRank.Eight },
+    ];
+
+    const newGameState = playerStands(initialGameState);
+
+    expect(newGameState.dealerHand.length).toBe(
+      initialGameState.dealerHand.length + 1
+    );
+  })
 });
 
 describe("Determining the winner", () => {
